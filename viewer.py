@@ -62,6 +62,7 @@ class LaImViewer(QGraphicsView):
             self.xTrans = 0
             self.yTrans = 0
             self.zoom = 1.0
+        #print(self.mapToScene(self.viewport().geometry()).boundingRect().intersects(self.items()[0].sceneBoundingRect()))
         QGraphicsView.mouseDoubleClickEvent(self, event)
 
     def mouseMoveEvent(self, event):
@@ -73,10 +74,10 @@ class LaImViewer(QGraphicsView):
             deltaX = delta.x() / transform.m11()
             deltaY = delta.y() / transform.m22()
 
-            if(abs(self.xTrans - deltaX) > self.maxXTrans):
+            if(abs(self.xTrans - self.zoom*deltaX) > self.maxXTrans):
                 deltaX = 0
             
-            if(abs(self.yTrans - deltaY) > self.maxXTrans):
+            if(abs(self.yTrans - self.zoom*deltaY) > self.maxYTrans):
                 deltaY = 0
 
             self.xTrans -= deltaX
@@ -85,6 +86,7 @@ class LaImViewer(QGraphicsView):
             item = self.items()[0]
             newPose = item.pos() - QPointF(deltaX, deltaY)
             item.setPos(newPose)
+            #print("newPos = ", newPose)
             self.startPos = event.pos()
         QGraphicsView.mouseDoubleClickEvent(self, event)
 
