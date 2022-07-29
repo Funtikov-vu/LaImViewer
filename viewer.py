@@ -189,7 +189,11 @@ class LaImViewer(QGraphicsView):
             factor = 1.1
         else:
             factor = 0.9
-        self.zoom *= factor
+
+        if(self.zoom*factor < 1):
+            factor = 1.0
+        else:
+            self.zoom *= factor
 
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ControlModifier:
