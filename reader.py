@@ -37,7 +37,7 @@ class ImageReader():
         while xw < w:
             yh = 0
             xw2 = xw + self.tileWidth if xw + self.tileWidth <= w else w 
-            while yh < self.tileHeight:
+            while yh < h:
                 yh2 = yh + self.tileHeight if yh + self.tileHeight <= h else h 
                 cropped_img = img.crop((xw, yh, xw2, yh2))
                 level = 1
