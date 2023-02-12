@@ -5,13 +5,14 @@ Image.MAX_IMAGE_PIXELS = None
 
 import os
 import shutil
+from math import log2
 
 class ImageReader():
     def __init__(self):
         self.filename = None
         self.dir = None
-        self.tileWidth = 150
-        self.tileHeight = 150
+        self.tileWidth = 1500
+        self.tileHeight = 1500
         self.levelCount = 0
 
     def getTileSize(self):
@@ -26,7 +27,7 @@ class ImageReader():
         w1, h1 = w, h
         level = 1
         os.mkdir(os.path.join(self.dir, str(level)))
-        while(w1 >= 100 and h1 >= 100 and level <= 10):
+        while(w1 >= self.tileWidth/log2(self.tileWidth) and h1 >= self.tileHeight/log2(self.tileHeight) and level <= 10):
             w1 /= 2
             h1 /= 2
             level += 1
@@ -46,7 +47,14 @@ class ImageReader():
                 cropped_img.save(cropName)
                 width, height = cropped_img.size
                 while level <= self.levelCount:
-                    low_res_img = cropped_img.resize((width // pow(2, level),height //  pow(2, level)))
+                    width //= 2
+                    height //= 2
+
+                    if width == 0:
+                        width = 1
+                    if height == 0:
+                        height = 1
+                    low_res_img = cropped_img.resize((width,height))
                     low_res_img.save(os.path.join(self.dir, str(level+1), name), "PNG")
                     level += 1
                 yh += self.tileWidth
@@ -74,6 +82,5 @@ if __name__ == '__main__':
 
     reader = ImageReader()
 
-    #reader.load("C:\\Users\\Dmitry\\Downloads\\MAES15_Biodiversity_Marine_WGS84_Final\\MAES15_Biodiversity_Marine_WGS84_Final.png")
-   # reader.load("C:\\Users\\Dmitry\\Downloads\\MAES15_Biodiversity_Marine_WGS84_Final\\0.tif")
-    reader.load("C:\\Users\\Dmitry\\Downloads\\123LaIm\\1.png")
+    reader.load("C:\\Users\\Dmitry\\Downloads\\MAES15_Biodiversity_Marine_WGS84_Final\\MAES15_Biodiversity_Marine_WGS84_Final.png")
+    #reader.load("C:\\Users\\Dmitry\\Downloads\\123LaIm\\1.png")
