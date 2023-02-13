@@ -25,14 +25,14 @@ class PixmapItem(QGraphicsPixmapItem):
 
 
 class LaImViewer(QGraphicsView):
-    def __init__(self):
+    def __init__(self, meta):
         QGraphicsView.__init__(self)
 
         self.setMouseTracking(True)
 
         self.scene = QGraphicsScene()
 
-        self.reader = ImageReader()
+        self.reader = ImageReader(meta['tile_dir'], meta['ext'])
 
         self.setScene(self.scene)
 
@@ -103,7 +103,7 @@ class LaImViewer(QGraphicsView):
                 pixItem.setPos(QPointF(x,y))
                 self.scene.addItem(pixItem)
                 y += tileHeight
-            
+
             x += tileWidth
         #print("================================")
         for i in range(len(self.scene.items())):
@@ -140,7 +140,7 @@ class LaImViewer(QGraphicsView):
             #print("view center")
 
         self.draw()
-    
+
     def resizeEvent(self, event):
         QGraphicsView.resizeEvent(self, event)
         self.draw()
@@ -150,7 +150,7 @@ class LaImViewer(QGraphicsView):
             self.startPos = event.pos()
         #print(self.mapToScene(self.viewport().geometry()).boundingRect().intersects(self.items()[0].sceneBoundingRect()))
         self.draw()
-    
+
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.RightButton:
             self.fitInView(self.reader.rect(), Qt.KeepAspectRatio)
@@ -162,16 +162,16 @@ class LaImViewer(QGraphicsView):
         #print("move")
         self.mousePos = event.pos()
         if self.startPos is not None:
-            delta = self.startPos - event.pos()            
-            
-            transform = self.transform()     
+            delta = self.startPos - event.pos()
+
+            transform = self.transform()
 
             deltaX = delta.x() / transform.m11()
             deltaY = delta.y() / transform.m22()
 
             if(abs(self.xTrans - self.zoom*deltaX) > self.maxXTrans):
                 deltaX = 0
-            
+
             if(abs(self.yTrans - self.zoom*deltaY) > self.maxYTrans):
                 deltaY = 0
 
@@ -192,13 +192,16 @@ if __name__ == '__main__':
         'image_path': r"C:\Users\buriv\PycharmProjects\LaIm\ex1.jpeg",
         'tile_dir': r"C:\Users\buriv\PycharmProjects\LaIm\tiles",
         'tile_size': 2000,
-        'lvl_nums': 5
+        'lvl_nums': 5,
+        'ext': 'png'
     }
     conv = Converter(**params)
+    conv.make_tiles()
+    meta = conv.generate_meta()
 
     app = QApplication(sys.argv)
 
-    viewer = LaImViewer()
+    viewer = LaImViewer(meta)
     viewer.loadImage()
     viewer.setWindowTitle("LaImViewer")
 

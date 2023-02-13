@@ -1,11 +1,14 @@
+import os
 from math import log2
 from PySide6.QtGui import QImage, QPixmap
 
 
 class ImageReader():
-    def __init__(self):
+    def __init__(self, temp_dir, ext):
         self.image = None
         self.levels = []
+        self.temp_dir = temp_dir
+        self.ext = ext
 
     def load(self, filename):
         self.image = QImage(filename)
@@ -29,13 +32,16 @@ class ImageReader():
         return not self.image.isNull()
 
     def read(self, xtop, ytop, xbottom, ybottom, f):
-        level = int(log2(1.0 / f)) + 1
+        level = int(log2(1.0 / f))
 
-        if (level < 1):
-            level = 1
+        if (level < 0):
+            level = 0
 
-        if (level > len(self.levels) + 1):
-            level = len(self.levels) + 1
+        if (level > len(self.levels) - 1):
+            level = len(self.levels) - 1
+        filename = os.path.join(self.temp_dir, str(level), f"{xtop}_{ytop}_{xbottom}_{ybottom}.{self.ext}")
+        return QImage(filename)
+
 
         factor = int(pow(2, level - 1))
         xtop //= factor

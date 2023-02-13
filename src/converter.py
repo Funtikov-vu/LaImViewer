@@ -12,13 +12,14 @@ class Converter:
     meta: image resolution
     '''
 
-    def __init__(self, image_path: str, tile_dir: str, tile_size: int, lvl_nums: int):
+    def __init__(self, image_path: str, tile_dir: str, tile_size: int, lvl_nums: int, ext: str):
         self.image_path = image_path
         self.tile_dir = tile_dir
         self.tile_size = tile_size
         self.lvl_nums = lvl_nums
         self.image = Image.open(image_path)
         self.make_tile_dirs()
+        self.ext = ext
 
     def make_tile_dirs(self):
         os.makedirs(self.tile_dir, exist_ok=True)
@@ -32,7 +33,8 @@ class Converter:
         meta = {
             'height': self.image.height,
             'width': self.image.width,
-
+            'tile_dir': self.tile_dir,
+            'ext': self.ext
         }
         meta_path = os.path.join(self.tile_dir, META_FILENAME)
         with open(meta_path, 'w') as f:
@@ -40,6 +42,7 @@ class Converter:
                 f.write(key)
                 f.write(str(meta[key]))
                 f.write('\n')
+        return meta
 
     def make_tiles(self):
         x0 = 0
@@ -76,7 +79,8 @@ if __name__ == "__main__":
         'image_path': r"C:\Users\buriv\PycharmProjects\LaIm\ex1.jpeg",
         'tile_dir': r"C:\Users\buriv\PycharmProjects\LaIm\tiles",
         'tile_size': 2000,
-        'lvl_nums': 5
+        'lvl_nums': 5,
+        'ext': 'png'
     }
     conv = Converter(**params)
     conv.make_tiles()
