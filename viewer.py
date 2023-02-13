@@ -5,6 +5,10 @@ from PySide6.QtCore import Qt, QPointF, QPoint, QRect
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QFileDialog, QApplication, QGraphicsPixmapItem, QMessageBox
 
+from src.converter import Converter
+from src.reader import ImageReader
+
+
 class PixmapItem(QGraphicsPixmapItem):
     def __init_(self):
         QGraphicsPixmapItem.__init__(self)
@@ -18,86 +22,7 @@ class PixmapItem(QGraphicsPixmapItem):
     def paint(self, painter, options, widget):
         painter.drawImage(self.rect, self.pixmap().toImage(), self.pixmap().toImage().rect())
 
-class ImageReader():
-    def __init__(self):
-        self.image = None
-        self.levels = []
-    
-    def load(self, filename):
-        self.image = QImage(filename)
 
-        if(self.image.isNull()):
-            return False
-
-        w = self.image.width()
-        h = self.image.height()
-        
-        w /= 2
-        h /= 2
-
-        level = 1
-        while(w >= 2 and h >= 2 and level <= 10):
-            self.levels.append(self.image.copy().scaled(w,h))
-            w /= 2
-            h /= 2
-            level += 1
-
-        return not self.image.isNull()
-
-    def read(self, xtop, ytop, xbottom, ybottom, f):
-        level = int(log2(1.0/f)) + 1
-
-        if(level < 1):
-            level = 1
-
-        if(level > len(self.levels) + 1):
-            level = len(self.levels) + 1
-
-        factor = int(pow(2,level-1))
-        xtop //= factor
-        ytop //= factor
-        xbottom //= factor
-        ybottom //= factor
-
-        #print("level = ", level)
-
-        if(level == 1):
-            w = self.image.width()
-            h = self.image.height()
-            if(xtop < 0):
-                xtop = 0
-            if(xbottom > w):
-                xbottom = w
-            if(ytop < 0):
-                ytop = 0
-            if(ybottom > h):
-                ybottom = h
-            return self.image.copy(xtop, ytop, xbottom - xtop, ybottom - ytop)
-        else:
-            #print("w = ", self.levels[level - 2].width())
-            #print("h = ", self.levels[level - 2].height())
-            #print("xbot = ", xbottom)
-            #print("ybot = ", ybottom)
-            w = self.levels[level - 2].width()
-            h = self.levels[level - 2].height()
-            if(xtop < 0):
-                xtop = 0
-            if(xbottom > w):
-                xbottom = w
-            if(ytop < 0):
-                ytop = 0
-            if(ybottom > h):
-                ybottom = h
-            return self.levels[level - 2].copy(xtop, ytop, xbottom - xtop, ybottom - ytop)
-
-    def width(self):
-        return self.image.width()
-    
-    def height(self):
-        return self.image.height()
-
-    def rect(self):
-        return self.image.rect()
 
 class LaImViewer(QGraphicsView):
     def __init__(self):
@@ -170,7 +95,7 @@ class LaImViewer(QGraphicsView):
                     y += tileHeight
                     continue
                 #print(x,y,xbot,ybot,xbot-x,ybot-y,sep = "; ")
-                image = self.reader.read(x,y,xbot,ybot,factor)
+                image = self.reader.read(x, y, xbot, ybot, factor)
                 pixItem = PixmapItem()
                 pixmap = QPixmap.fromImage(image)
                 pixItem.setPixmap(pixmap)
@@ -262,6 +187,14 @@ class LaImViewer(QGraphicsView):
 
 if __name__ == '__main__':
     import sys
+
+    params = {
+        'image_path': r"C:\Users\buriv\PycharmProjects\LaIm\ex1.jpeg",
+        'tile_dir': r"C:\Users\buriv\PycharmProjects\LaIm\tiles",
+        'tile_size': 2000,
+        'lvl_nums': 5
+    }
+    conv = Converter(**params)
 
     app = QApplication(sys.argv)
 
