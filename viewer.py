@@ -1,5 +1,4 @@
 from math import log2
-import os.path
 
 from PySide6.QtCore import Qt, QPointF, QPoint, QRect
 from PySide6.QtGui import QImage, QPixmap
@@ -23,16 +22,15 @@ class PixmapItem(QGraphicsPixmapItem):
         painter.drawImage(self.rect, self.pixmap().toImage(), self.pixmap().toImage().rect())
 
 
-
 class LaImViewer(QGraphicsView):
-    def __init__(self, meta):
+    def __init__(self):
         QGraphicsView.__init__(self)
+        
+        self.wasLoaded = False
 
         self.setMouseTracking(True)
 
         self.scene = QGraphicsScene()
-
-        self.reader = ImageReader(meta['tile_dir'], meta['ext'])
 
         self.setScene(self.scene)
 
@@ -54,40 +52,41 @@ class LaImViewer(QGraphicsView):
         self.verticalScrollBar().valueChanged.connect(self.scrollValueChange)
         self.horizontalScrollBar().valueChanged.connect(self.scrollValueChange)
 
-    def loadImage(self, fileName=""):
-        fileName, dummy = QFileDialog.getOpenFileName(self, "Open image")
-        if len(fileName) and os.path.isfile(fileName):
-            if(self.reader.load(fileName) is False):
-                QMessageBox.warning(self, "Error", "Can not open image")
-                self.loadImage()
-            rect = self.reader.rect()
-            self.setSceneRect(rect)
-            self.fitInView(rect, Qt.KeepAspectRatio)
-            self.maxXTrans = self.reader.width()/2
-            self.maxYTrans = self.reader.height()/2
-            self.draw()
+    def loadImage(self):
+        self.dir = QFileDialog.getExistingDirectory() 
+        self.reader = ImageReader(self.dir)
+        self.wasLoaded = True
+        rect = self.reader.rect()
+        self.setSceneRect(rect)
+        self.fitInView(rect, Qt.KeepAspectRatio)
+        self.maxXTrans = self.reader.widthImage()/2
+        self.maxYTrans = self.reader.heightImage()/2
+        self.draw()
 
     def scrollValueChange(self):
         self.draw()
 
     def draw(self):
-        factor =  max(self.zoom*self.width()/self.reader.width(), self.zoom*self.height()/self.reader.height())
+        if not self.wasLoaded:
+            return
+        
+        factor =  max(self.zoom*self.width()/self.reader.widthImage(), self.zoom*self.height()/self.reader.heightImage())
 
         self.scene.clear()
 
-        tileWidth = 500
-        tileHeight = 500
+        tileWidth = self.reader.tile_size
+        tileHeight = self.reader.tile_size
         x = 0
         y = 0
 
         newPose = QPointF(self.xTrans, self.yTrans)
         #print("================================")
         mapRect = self.mapToScene(self.viewport().geometry()).boundingRect()
-        while(x < self.reader.width()):
+        while(x < self.reader.widthImage()):
             y = 0
-            xbot = x + tileWidth if x + tileWidth < self.reader.width() else self.reader.width()
-            while(y < self.reader.height()):
-                ybot = y + tileHeight if y + tileHeight < self.reader.height() else self.reader.height()
+            xbot = x + tileWidth if x + tileWidth < self.reader.widthImage() else self.reader.widthImage()
+            while(y < self.reader.heightImage()):
+                ybot = y + tileHeight if y + tileHeight < self.reader.heightImage() else self.reader.heightImage()
                 tileRect = QRect(0,0,xbot-x+1,ybot-y+1)
                 tileRect.translate(QPoint(newPose.x(), newPose.y()) + QPoint(x,y))
                 if(mapRect.intersected(tileRect).isNull()):
@@ -188,22 +187,11 @@ class LaImViewer(QGraphicsView):
 if __name__ == '__main__':
     import sys
 
-    params = {
-        'image_path': r"C:\Users\buriv\PycharmProjects\LaIm\ex1.jpeg",
-        'tile_dir': r"C:\Users\buriv\PycharmProjects\LaIm\tiles",
-        'tile_size': 2000,
-        'lvl_nums': 5,
-        'ext': 'png'
-    }
-    conv = Converter(**params)
-    conv.make_tiles()
-    meta = conv.generate_meta()
-
     app = QApplication(sys.argv)
 
-    viewer = LaImViewer(meta)
+    viewer = LaImViewer()
     viewer.loadImage()
     viewer.setWindowTitle("LaImViewer")
 
     viewer.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

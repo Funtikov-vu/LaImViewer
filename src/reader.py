@@ -1,90 +1,52 @@
 import os
 from math import log2
 from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtCore import QRect
+from src.converter import META_FILENAME
 
 
 class ImageReader():
-    def __init__(self, temp_dir, ext):
+    def __init__(self, temp_dir):
         self.image = None
-        self.levels = []
-        self.temp_dir = temp_dir
-        self.ext = ext
+        self.tile_dir = temp_dir
+        self.load()
+        
 
-    def load(self, filename):
-        self.image = QImage(filename)
-
-        if (self.image.isNull()):
-            return False
-
-        w = self.image.width()
-        h = self.image.height()
-
-        w /= 2
-        h /= 2
-
-        level = 1
-        while (w >= 2 and h >= 2 and level <= 10):
-            self.levels.append(self.image.copy().scaled(w, h))
-            w /= 2
-            h /= 2
-            level += 1
-
-        return not self.image.isNull()
-
+    def load(self):
+        meta_path = os.path.join(self.tile_dir, META_FILENAME)
+        file = open(meta_path, 'r')
+        lines = file.readlines()
+        
+        for line in lines:
+            if "height" in line:
+                self.height = int(line.split(":")[1])
+            elif "width" in line:
+                self.width = int(line.split(":")[1])
+            elif "tile_size" in line:
+                self.tile_size = int(line.split(":")[1])
+            elif "ext" in line:
+                self.ext = line.split(":")[1].rstrip('\n')
+            elif "lvl_nums" in line:
+                self.levels = int(line.split(":")[1])
+                
+                
     def read(self, xtop, ytop, xbottom, ybottom, f):
         level = int(log2(1.0 / f))
 
         if (level < 0):
             level = 0
 
-        if (level > len(self.levels) - 1):
-            level = len(self.levels) - 1
-        filename = os.path.join(self.temp_dir, str(level), f"{xtop}_{ytop}_{xbottom}_{ybottom}.{self.ext}")
+        if (level > self.levels - 1):
+            level = self.levels - 1
+            
+        filename = os.path.join(self.tile_dir, str(level), f"{xtop}_{ytop}_{xbottom}_{ybottom}.{self.ext}")
         return QImage(filename)
 
+    def widthImage(self):
+        return self.width
 
-        factor = int(pow(2, level - 1))
-        xtop //= factor
-        ytop //= factor
-        xbottom //= factor
-        ybottom //= factor
-
-        # print("level = ", level)
-
-        if (level == 1):
-            w = self.image.width()
-            h = self.image.height()
-            if (xtop < 0):
-                xtop = 0
-            if (xbottom > w):
-                xbottom = w
-            if (ytop < 0):
-                ytop = 0
-            if (ybottom > h):
-                ybottom = h
-            return self.image.copy(xtop, ytop, xbottom - xtop, ybottom - ytop)
-        else:
-            # print("w = ", self.levels[level - 2].width())
-            # print("h = ", self.levels[level - 2].height())
-            # print("xbot = ", xbottom)
-            # print("ybot = ", ybottom)
-            w = self.levels[level - 2].width()
-            h = self.levels[level - 2].height()
-            if (xtop < 0):
-                xtop = 0
-            if (xbottom > w):
-                xbottom = w
-            if (ytop < 0):
-                ytop = 0
-            if (ybottom > h):
-                ybottom = h
-            return self.levels[level - 2].copy(xtop, ytop, xbottom - xtop, ybottom - ytop)
-
-    def width(self):
-        return self.image.width()
-
-    def height(self):
-        return self.image.height()
+    def heightImage(self):
+        return self.height
 
     def rect(self):
-        return self.image.rect()
+        return QRect(0, 0, self.width, self.height)

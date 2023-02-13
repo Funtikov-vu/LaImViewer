@@ -4,11 +4,13 @@ from PySide6.QtWidgets import (QLineEdit, QPushButton, QApplication,
      QDialog, QToolButton, QLabel, QFileDialog, QSpinBox, QGridLayout,QMessageBox)
 
 from PySide6.QtCore import QDir
+from converter import Converter
 
 class ConverterDialog(QDialog):
 
     def __init__(self, parent=None):
         super(ConverterDialog, self).__init__(parent)
+        self.setWindowTitle("Converter")
         
         self.imgNameLable = QLabel("Select image path")
         self.imgNameLine = QLineEdit("Path")
@@ -86,13 +88,19 @@ class ConverterDialog(QDialog):
                         os.remove(path)               
         else:
             QMessageBox.warning(self, "Warning", "Directory does not exist")
-            
-        #TODO convert
-        # status = Converter.make(imgName,....)
-        # if status:
-        #   QMessageBox.information(self, "Info", "Converting complite!")
-        #else:
-        #   QMessageBox.warning(self, "Warning", "Can not convert")
+        
+        params = {
+            'image_path': imgName,
+            'tile_dir': dirName,
+            'tile_size': tileSize,
+            'lvl_nums': levels,
+            'ext': 'png'
+        }
+        conv = Converter(**params)
+        conv.make_tiles()
+        conv.generate_meta()
+        conv.image.close()
+        QMessageBox.information(self, "Info", "Converting complite!")
         
         
 if __name__ == '__main__':

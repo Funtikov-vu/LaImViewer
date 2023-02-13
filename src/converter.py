@@ -34,12 +34,15 @@ class Converter:
             'height': self.image.height,
             'width': self.image.width,
             'tile_dir': self.tile_dir,
+            'image_path': self.image_path,
+            'tile_size': self.tile_size,
+            'lvl_nums': self.lvl_nums,
             'ext': self.ext
         }
         meta_path = os.path.join(self.tile_dir, META_FILENAME)
         with open(meta_path, 'w') as f:
             for key in meta:
-                f.write(key)
+                f.write(key+":")
                 f.write(str(meta[key]))
                 f.write('\n')
         return meta
@@ -62,6 +65,10 @@ class Converter:
                 while lvl < self.lvl_nums:
                     w //= 2
                     h //= 2
+                    if w < 2:
+                        w = 2
+                    if h < 2:
+                        h = 2
                     tile_level = tile.resize((w, h))
                     tile_level.save(os.path.join(self.tile_dir, str(lvl), self.coords_fname(x0, y0, x1, y1)))
                     tile_level.close()
@@ -71,19 +78,19 @@ class Converter:
             x0 = x1
 
 
-if __name__ == "__main__":
-    import datetime
+# if __name__ == "__main__":
+#     import datetime
 
-    s1 = datetime.datetime.now()
-    params = {
-        'image_path': r"C:\Users\buriv\PycharmProjects\LaIm\ex1.jpeg",
-        'tile_dir': r"C:\Users\buriv\PycharmProjects\LaIm\tiles",
-        'tile_size': 2000,
-        'lvl_nums': 5,
-        'ext': 'png'
-    }
-    conv = Converter(**params)
-    conv.make_tiles()
-    conv.generate_meta()
-    print(datetime.datetime.now() - s1)
-    conv.image.close()
+#     s1 = datetime.datetime.now()
+#     params = {
+#         'image_path': r"C:\Users\buriv\PycharmProjects\LaIm\ex1.jpeg",
+#         'tile_dir': r"C:\Users\buriv\PycharmProjects\LaIm\tiles",
+#         'tile_size': 2000,
+#         'lvl_nums': 5,
+#         'ext': 'png'
+#     }
+#     conv = Converter(**params)
+#     conv.make_tiles()
+#     conv.generate_meta()
+#     print(datetime.datetime.now() - s1)
+#     conv.image.close()
