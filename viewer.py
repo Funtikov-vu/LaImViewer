@@ -61,53 +61,30 @@ class LaImViewer(QGraphicsView):
         self.fitInView(rect, Qt.KeepAspectRatio)
         self.maxXTrans = self.reader.widthImage()/2
         self.maxYTrans = self.reader.heightImage()/2
+        self.scene.addItem(PixmapItem())
         self.draw()
 
     def scrollValueChange(self):
         self.draw()
 
     def draw(self):
-        if not self.wasLoaded:
+        if not self.wasLoaded or len(self.scene.items()) == 0 :
             return
         
         factor =  max(self.zoom*self.width()/self.reader.widthImage(), self.zoom*self.height()/self.reader.heightImage())
 
-        self.scene.clear()
+        newPose = QPoint(self.xTrans, self.yTrans)
 
-        tileWidth = self.reader.tile_size
-        tileHeight = self.reader.tile_size
-        x = 0
-        y = 0
-
-        newPose = QPointF(self.xTrans, self.yTrans)
-        #print("================================")
         mapRect = self.mapToScene(self.viewport().geometry()).boundingRect()
-        while(x < self.reader.widthImage()):
-            y = 0
-            xbot = x + tileWidth if x + tileWidth < self.reader.widthImage() else self.reader.widthImage()
-            while(y < self.reader.heightImage()):
-                ybot = y + tileHeight if y + tileHeight < self.reader.heightImage() else self.reader.heightImage()
-                tileRect = QRect(0,0,xbot-x+1,ybot-y+1)
-                tileRect.translate(QPoint(newPose.x(), newPose.y()) + QPoint(x,y))
-                if(mapRect.intersected(tileRect).isNull()):
-                    #print("Not visible", x, y, sep = " ")
-                    y += tileHeight
-                    continue
-                #print(x,y,xbot,ybot,xbot-x,ybot-y,sep = "; ")
-                image = self.reader.read(x, y, xbot, ybot, factor)
-                pixItem = PixmapItem()
-                pixmap = QPixmap.fromImage(image)
-                pixItem.setPixmap(pixmap)
-                pixItem.setSceneRect(QRect(0,0,xbot-x+1,ybot-y+1))
-                pixItem.setPos(QPointF(x,y))
-                self.scene.addItem(pixItem)
-                y += tileHeight
-
-            x += tileWidth
-        #print("================================")
-        for i in range(len(self.scene.items())):
-             self.scene.items()[i].setPos(self.scene.items()[i].pos() + newPose)
-
+        
+        img, rect = self.reader.getTiles(mapRect, factor, newPose)
+        
+        if img is not None:
+            pixmap = QPixmap.fromImage(img)
+            self.items()[0].setPixmap(pixmap)
+            self.items()[0].setSceneRect(QRect(0,0,rect.width(),rect.height()))
+            self.items()[0].setPos(QPoint(rect.x(), rect.y()) + newPose)
+            
     def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
             factor = 1.1
