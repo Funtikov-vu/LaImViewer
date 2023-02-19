@@ -3,7 +3,7 @@ import shutil
 from PySide6.QtWidgets import (QLineEdit, QPushButton, QApplication,
      QDialog, QToolButton, QLabel, QFileDialog, QSpinBox, QGridLayout,QMessageBox,QProgressDialog)
 
-from PySide6.QtCore import QDir
+from PySide6.QtCore import QDir, Qt 
 from converter import Converter
 
 class ConverterDialog(QDialog):
@@ -97,10 +97,12 @@ class ConverterDialog(QDialog):
             'ext': 'png'
         }
         conv = Converter(**params)
-        self.progress = QProgressDialog(self)
-        self.progress.show()
+        self.progress = QProgressDialog("Convert", "Stop", 0, 100)
         self.progress.setModal(True)
         self.progress.setValue(0)
+        self.progress.show()
+        self.progress.setWindowTitle("Convert")
+        self.progress.setLabelText("Wait please")
         conv.make_tiles(self.progress)
         conv.generate_meta()
         conv.image.close()

@@ -1,6 +1,6 @@
 from math import log2
 
-from PySide6.QtCore import Qt, QPointF, QPoint, QRect
+from PySide6.QtCore import Qt, QPointF, QPoint, QRect, QTimer
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QFileDialog, QApplication, QGraphicsPixmapItem, QMessageBox
 
@@ -40,6 +40,7 @@ class LaImViewer(QGraphicsView):
         self.zoom = 1.0
         self.xTrans = 0.0
         self.yTrans = 0.0
+        self.skipZoom = False
 
         self.maxXTrans = 0.0
         self.maxYTrans = 0.0
@@ -86,36 +87,51 @@ class LaImViewer(QGraphicsView):
             self.items()[0].setPos(QPoint(rect.x(), rect.y()) + newPose)
             
     def wheelEvent(self, event):
-        if event.angleDelta().y() > 0:
-            factor = 1.1
-        else:
-            factor = 0.9
+        if self.skipZoom:
+            return
+        
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.stopSkipZoom)
+        self.skipZoom = True
+        self.timer.start(25)
+        
+        angle = event.angleDelta().y()
+        
+        for i in range(5):
+            factor = pow(1.0010, angle)
 
-        if(self.zoom*factor < 1):
-            factor = 1.0
-        else:
-            self.zoom *= factor
+            if(self.zoom*factor < 1):
+                factor = 1.0
+                continue
+            else:
+                self.zoom *= factor
 
-        modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ControlModifier:
-            targetViewportPos = self.mousePos
-            targetScenePos = self.mapToScene(self.mousePos)
+            modifiers = QApplication.keyboardModifiers()
+            if modifiers == Qt.ControlModifier:
+                targetViewportPos = self.mousePos
+                targetScenePos = self.mapToScene(self.mousePos)
 
-            self.scale(factor, factor)
-            self.centerOn(targetScenePos)
+                self.scale(factor, factor)
+                self.centerOn(targetScenePos)
 
-            deltaViewportPos = targetViewportPos - QPoint(self.viewport().width() / 2.0, self.viewport().height() / 2.0)
-            viewportCenter = self.mapFromScene(targetScenePos) - deltaViewportPos
+                deltaViewportPos = targetViewportPos - QPoint(self.viewport().width() / 2.0, self.viewport().height() / 2.0)
+                viewportCenter = self.mapFromScene(targetScenePos) - deltaViewportPos
 
-            self.centerOn(self.mapToScene(viewportCenter))
-            #print("mouse center")
-        else:
-            targetPos = self.mapToScene(self.viewport().rect().center())
-            self.scale(factor, factor)
-            self.centerOn(targetPos)
-            #print("view center")
+                self.centerOn(self.mapToScene(viewportCenter))
+                #print("mouse center")
+            else:
+                targetPos = self.mapToScene(self.viewport().rect().center())
+                self.scale(factor, factor)
+                self.centerOn(targetPos)
+                #print("view center")
 
-        self.draw()
+            self.draw()
+            QTimer.singleShot(10, i)
+            
+        
+        
+    def stopSkipZoom(self):
+        self.skipZoom = False
 
     def resizeEvent(self, event):
         QGraphicsView.resizeEvent(self, event)

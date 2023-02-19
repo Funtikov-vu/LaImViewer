@@ -53,7 +53,8 @@ class Converter:
         progress.setRange(0, self.image.width)
         while x0 < self.image.width:
             progress.setValue(x0)
-            progress.update()
+            if progress.wasCanceled():
+                continue
             x1 = x0 + self.tile_size
             x1 = min(x1, self.image.width)
             y0 = 0

@@ -1,6 +1,6 @@
 import os
 from math import log2
-from PySide6.QtGui import QImage, QPixmap, QPainter
+from PySide6.QtGui import QImage, QPixmap, QPainter, qRgb
 from PySide6.QtCore import QRect, QPoint
 from src.converter import META_FILENAME
 
@@ -34,8 +34,6 @@ class ImageReader():
 
         if (level < 0):
             level = 0
-        
-        print(shift)
             
         rect.translate(QPoint(-shift.x(),-shift.y()))
 
@@ -86,6 +84,8 @@ class ImageReader():
         prevW = 0
         prevH = 0
         
+        img = QImage()
+        
         while x < wbot:
             y = htop
             xbot = x + tileW if x + tileW < self.widthImage() else self.widthImage()
@@ -94,8 +94,13 @@ class ImageReader():
                 filename = os.path.join(self.tile_dir, str(level), f"{x}_{y}_{xbot}_{ybot}.{self.ext}")
                 img = QImage(filename)
                 
+                if img.isNull():
+                    print("nul")
+                    continue
+                
                 if fullImage is None:
                     fullImage = QImage((wbot-wtop)//(2**level), (hbot - htop)//(2**level), img.format())
+                    fullImage.fill(qRgb(255, 255, 255))
                     painter = QPainter(fullImage)
                     #painter.begin()
                 
