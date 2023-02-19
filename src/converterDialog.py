@@ -1,7 +1,7 @@
 import sys, os
 import shutil
 from PySide6.QtWidgets import (QLineEdit, QPushButton, QApplication,
-     QDialog, QToolButton, QLabel, QFileDialog, QSpinBox, QGridLayout,QMessageBox)
+     QDialog, QToolButton, QLabel, QFileDialog, QSpinBox, QGridLayout,QMessageBox,QProgressDialog)
 
 from PySide6.QtCore import QDir
 from converter import Converter
@@ -97,7 +97,11 @@ class ConverterDialog(QDialog):
             'ext': 'png'
         }
         conv = Converter(**params)
-        conv.make_tiles()
+        self.progress = QProgressDialog(self)
+        self.progress.show()
+        self.progress.setModal(True)
+        self.progress.setValue(0)
+        conv.make_tiles(self.progress)
         conv.generate_meta()
         conv.image.close()
         QMessageBox.information(self, "Info", "Converting complite!")

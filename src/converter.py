@@ -1,4 +1,5 @@
 from PIL import Image
+from PySide6.QtWidgets import QProgressDialog
 
 Image.MAX_IMAGE_PIXELS = None
 import os
@@ -47,9 +48,12 @@ class Converter:
                 f.write('\n')
         return meta
 
-    def make_tiles(self):
+    def make_tiles(self, progress : QProgressDialog):
         x0 = 0
+        progress.setRange(0, self.image.width)
         while x0 < self.image.width:
+            progress.setValue(x0)
+            progress.update()
             x1 = x0 + self.tile_size
             x1 = min(x1, self.image.width)
             y0 = 0
@@ -76,6 +80,7 @@ class Converter:
                 tile.close()
                 y0 = y1
             x0 = x1
+        progress.close()
 
 
 # if __name__ == "__main__":
