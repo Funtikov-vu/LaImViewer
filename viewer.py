@@ -93,12 +93,12 @@ class LaImViewer(QGraphicsView):
         self.timer = QTimer()
         self.timer.timeout.connect(self.stopSkipZoom)
         self.skipZoom = True
-        self.timer.start(25)
+        self.timer.start(200)
         
         angle = event.angleDelta().y()
         
-        for i in range(5):
-            factor = pow(1.0010, angle)
+        for i in range(1):
+            factor = pow(1.002, angle)
 
             if(self.zoom*factor < 1):
                 factor = 1.0
@@ -126,7 +126,7 @@ class LaImViewer(QGraphicsView):
                 #print("view center")
 
             self.draw()
-            QTimer.singleShot(10, i)
+            #QTimer.singleShot(500, i)
             
         
         

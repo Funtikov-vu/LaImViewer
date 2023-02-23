@@ -12,6 +12,11 @@ class ConverterDialog(QDialog):
         super(ConverterDialog, self).__init__(parent)
         self.setWindowTitle("Converter")
         
+        screen = QApplication.primaryScreen()
+        rec = screen.size()
+        height = rec.height()
+        width = rec.width()
+        
         self.imgNameLable = QLabel("Select image path")
         self.imgNameLine = QLineEdit("Path")
         self.imgButton = QToolButton()
@@ -32,7 +37,7 @@ class ConverterDialog(QDialog):
         self.tileLabel = QLabel("Tile size")
         self.tileSpin = QSpinBox()
         self.tileSpin.setRange(1,100000000)
-        self.tileSpin.setValue(10000)
+        self.tileSpin.setValue(max(rec.width(), rec.height()))
         
         self.extTileLabel = QLabel("Tile extension")
         self.extTileLine = QLineEdit("jpeg")
