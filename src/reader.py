@@ -34,7 +34,7 @@ class ImageReader():
 
         if (level < 0):
             level = 0
-            
+        
         rect.translate(QPoint(-shift.x(),-shift.y()))
 
         if (level > self.levels - 1):
@@ -118,8 +118,40 @@ class ImageReader():
         
         #if painter is not None:
             #painter.end()
+        
+        if not fullImage.isNull():
+            painter.end()
+            localW = rect.x()
+            if localW < 0:
+                localW = 0
+            if localW > self.width:
+                localW = self.width
             
-        return fullImage, QRect(wtop, htop, wbot-wtop, hbot-htop)             
+            localH = rect.y()
+            if localH < 0:
+                localH = 0
+            if localH > self.height:
+                localH = self.height
+            
+            localWbot = rect.x() + rect.width()
+            if localWbot < 0:
+                localWbot = 0
+            if localWbot > self.width:
+                localWbot = self.width
+                
+            localHbot = rect.y() + rect.height()
+            if localHbot < 0:
+                localHbot = 0
+            if localHbot > self.height:
+                localHbot = self.height
+            
+            localrect = QRect(localW, localH, localWbot - localW, localHbot - localH)
+            levRect = QRect(localrect.x()//(2**level)-wtop//(2**level), localrect.y()//(2**level)-htop//(2**level), localrect.width()//(2**level), localrect.height()//(2**level))
+            return fullImage.copy(levRect), localrect
+            #return fullImage.copy(localrect), localrect
+            
+        #return fullImage, QRect(wtop, htop, wbot-wtop, hbot-htop)
+        return None, None           
                 
     def read(self, xtop, ytop, xbottom, ybottom, f):
         level = int(log2(1.0 / f))
