@@ -63,7 +63,7 @@ class Converter:
                 y1 = min(y1, self.image.height)
                 tile = self.image.crop((x0, y0, x1, y1))
                 lvl = 0
-                tile.save(os.path.join(self.tile_dir, str(lvl), self.coords_fname(x0, y0, x1, y1)))
+                tile.save(os.path.join(self.tile_dir, str(lvl), self.coords_fname(x0, y0, x1, y1, self.ext)))
                 w = tile.width
                 h = tile.height
                 lvl = 1
@@ -75,7 +75,7 @@ class Converter:
                     if h < 2:
                         h = 2
                     tile_level = tile.resize((w, h))
-                    tile_level.save(os.path.join(self.tile_dir, str(lvl), self.coords_fname(x0, y0, x1, y1)))
+                    tile_level.save(os.path.join(self.tile_dir, str(lvl), self.coords_fname(x0, y0, x1, y1, self.ext)))
                     tile_level.close()
                     lvl += 1
                 tile.close()

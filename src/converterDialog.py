@@ -33,6 +33,9 @@ class ConverterDialog(QDialog):
         self.tileSpin = QSpinBox()
         self.tileSpin.setRange(1,100000000)
         self.tileSpin.setValue(10000)
+        
+        self.extTileLabel = QLabel("Tile extension")
+        self.extTileLine = QLineEdit("jpeg")
 
         self.convertButton = QPushButton("Convert")
         self.convertButton.clicked.connect(self.convert)
@@ -52,7 +55,10 @@ class ConverterDialog(QDialog):
         layout.addWidget(self.tileLabel,3,0)
         layout.addWidget(self.tileSpin,3,1)
         
-        layout.addWidget(self.convertButton,4,1)
+        layout.addWidget(self.extTileLabel,4,0)
+        layout.addWidget(self.extTileLine,4,1)
+        
+        layout.addWidget(self.convertButton,5,1)
         
         self.setLayout(layout)
                 
@@ -71,6 +77,7 @@ class ConverterDialog(QDialog):
         dirName = self.imgDirLine.text()
         levels = self.levelSpin.value()
         tileSize = self.tileSpin.value()
+        ext = self.extTileLine.text()
         
         dir = QDir(dirName)
         
@@ -94,7 +101,7 @@ class ConverterDialog(QDialog):
             'tile_dir': dirName,
             'tile_size': tileSize,
             'lvl_nums': levels,
-            'ext': 'png'
+            'ext': ext
         }
         conv = Converter(**params)
         self.progress = QProgressDialog("Convert", "Stop", 0, 100)
