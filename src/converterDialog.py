@@ -1,9 +1,9 @@
 import sys, os
 import shutil
 from PySide6.QtWidgets import (QLineEdit, QPushButton, QApplication,
-     QDialog, QToolButton, QLabel, QFileDialog, QSpinBox, QGridLayout,QMessageBox)
+     QDialog, QToolButton, QLabel, QFileDialog, QSpinBox, QGridLayout,QMessageBox,QProgressDialog)
 
-from PySide6.QtCore import QDir
+from PySide6.QtCore import QDir, Qt 
 from converter import Converter
 
 class ConverterDialog(QDialog):
@@ -11,6 +11,11 @@ class ConverterDialog(QDialog):
     def __init__(self, parent=None):
         super(ConverterDialog, self).__init__(parent)
         self.setWindowTitle("Converter")
+        
+        screen = QApplication.primaryScreen()
+        rec = screen.size()
+        height = rec.height()
+        width = rec.width()
         
         self.imgNameLable = QLabel("Select image path")
         self.imgNameLine = QLineEdit("Path")
@@ -32,7 +37,10 @@ class ConverterDialog(QDialog):
         self.tileLabel = QLabel("Tile size")
         self.tileSpin = QSpinBox()
         self.tileSpin.setRange(1,100000000)
-        self.tileSpin.setValue(10000)
+        self.tileSpin.setValue(max(rec.width(), rec.height()))
+        
+        self.extTileLabel = QLabel("Tile extension")
+        self.extTileLine = QLineEdit("jpeg")
 
         self.convertButton = QPushButton("Convert")
         self.convertButton.clicked.connect(self.convert)
@@ -52,7 +60,10 @@ class ConverterDialog(QDialog):
         layout.addWidget(self.tileLabel,3,0)
         layout.addWidget(self.tileSpin,3,1)
         
-        layout.addWidget(self.convertButton,4,1)
+        layout.addWidget(self.extTileLabel,4,0)
+        layout.addWidget(self.extTileLine,4,1)
+        
+        layout.addWidget(self.convertButton,5,1)
         
         self.setLayout(layout)
                 
@@ -71,6 +82,7 @@ class ConverterDialog(QDialog):
         dirName = self.imgDirLine.text()
         levels = self.levelSpin.value()
         tileSize = self.tileSpin.value()
+        ext = self.extTileLine.text()
         
         dir = QDir(dirName)
         
@@ -94,10 +106,16 @@ class ConverterDialog(QDialog):
             'tile_dir': dirName,
             'tile_size': tileSize,
             'lvl_nums': levels,
-            'ext': 'png'
+            'ext': ext
         }
         conv = Converter(**params)
-        conv.make_tiles()
+        self.progress = QProgressDialog("Convert", "Stop", 0, 100)
+        self.progress.setModal(True)
+        self.progress.setValue(0)
+        self.progress.show()
+        self.progress.setWindowTitle("Convert")
+        self.progress.setLabelText("Wait please")
+        conv.make_tiles(self.progress)
         conv.generate_meta()
         conv.image.close()
         QMessageBox.information(self, "Info", "Converting complite!")
