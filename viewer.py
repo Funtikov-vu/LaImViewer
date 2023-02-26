@@ -91,12 +91,12 @@ class LaImViewer(QGraphicsView):
         currLevel = self.reader.getLevel(factor)
         
         if currLevel == self.prevLevel and self.isOneRects(self.prevRect, currRect):
-            print("Tozhe samoe")
+            # print("Tozhe samoe")
             self.items()[0].setSceneRect(QRect(0,0,currRect.width(),currRect.height()))
-            self.items()[0].setPos(QPoint(currRect.x(), currRect.y()) + newPose)
+            self.items()[0].setPos(QPoint(currRect.x(), currRect.y()) + newPose2)
             return
-        else:
-            print("RISYI")
+        # else:
+        #     print("RISYI")
         
         self.prevLevel = currLevel
         self.prevRect = currRect
@@ -116,42 +116,42 @@ class LaImViewer(QGraphicsView):
         self.timer = QTimer()
         self.timer.timeout.connect(self.stopSkipZoom)
         self.skipZoom = True
-        self.timer.start(200)
+        self.timer.start(150)
         
         angle = event.angleDelta().y()
         
-        for i in range(1):
-            factor = pow(1.002, angle)
+        #for i in range(1):
+        factor = pow(1.0015, angle)
 
-            if(self.zoom*factor < 1):
-                factor = 1.0
-                continue
-            else:
-                self.zoom *= factor
+        if(self.zoom*factor < 1):
+            factor = 1.0
+        else:
+            self.zoom *= factor
 
-            modifiers = QApplication.keyboardModifiers()
-            if modifiers == Qt.ControlModifier:
-                targetViewportPos = self.mousePos
-                targetScenePos = self.mapToScene(self.mousePos)
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ControlModifier:
+            targetViewportPos = self.mousePos
+            targetScenePos = self.mapToScene(self.mousePos)
 
-                self.scale(factor, factor)
-                self.centerOn(targetScenePos)
+            self.scale(factor, factor)
+            self.centerOn(targetScenePos)
 
-                deltaViewportPos = targetViewportPos - QPoint(self.viewport().width() / 2.0, self.viewport().height() / 2.0)
-                viewportCenter = self.mapFromScene(targetScenePos) - deltaViewportPos
+            deltaViewportPos = targetViewportPos - QPoint(self.viewport().width() / 2.0, self.viewport().height() / 2.0)
+            viewportCenter = self.mapFromScene(targetScenePos) - deltaViewportPos
 
-                self.centerOn(self.mapToScene(viewportCenter))
-                #print("mouse center")
-            else:
-                targetPos = self.mapToScene(self.viewport().rect().center())
-                self.scale(factor, factor)
-                self.centerOn(targetPos)
-                #print("view center")
+            self.centerOn(self.mapToScene(viewportCenter))
+            #print("mouse center")
+        else:
+            targetPos = self.mapToScene(self.viewport().rect().center())
+            self.scale(factor, factor)
+            self.centerOn(targetPos)
+            #print("view center")
 
-            self.draw()
-            #QTimer.singleShot(500, i)
+        self.draw()
+        #QTimer.singleShot(250, lambda : self.mySleepEvent)
             
-        
+    def mySleepEvent(self, event):
+        print("sleep")
         
     def stopSkipZoom(self):
         self.skipZoom = False
