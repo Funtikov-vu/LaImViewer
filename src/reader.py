@@ -29,6 +29,54 @@ class ImageReader():
             elif "lvl_nums" in line:
                 self.levels = int(line.split(":")[1])
     
+    def getLevel(self, factor):
+        level = int(log2(1.0 / factor))
+
+        if (level < 0):
+            level = 0
+        
+        if (level > self.levels - 1):
+            level = self.levels - 1
+            
+        return level
+    
+    def getShownRect(self, screenRect, shift):
+        screenRect.translate(QPoint(-shift.x(),-shift.y()))
+        tileW = self.tile_size
+        tileH = self.tile_size
+        wtop = int((screenRect.x()//tileW)*tileW)
+        htop = int((screenRect.y()//tileH)*tileH)
+        
+        wbot = int(((screenRect.x() + screenRect.width())//tileW + 1)*tileW)
+        hbot = int(((screenRect.y() + screenRect.height())//tileH + 1)*tileH)
+        
+        if wtop < 0:
+            wtop = 0
+            
+        if htop < 0:
+            htop = 0
+        
+        if wtop > self.width:
+            wtop = self.width
+        
+        if htop > self.height:
+            htop = self.height
+        
+        if wbot > self.width:
+            wbot = self.width
+        
+        if hbot > self.height:
+            hbot = self.height
+            
+        if wbot < 0:
+            wbot = 0
+            
+        if hbot < 0:
+            hbot = 0
+            
+        return QRect(wtop, htop, wbot-wtop, hbot-htop)
+        
+    
     def getTiles(self, rect : QRect, factor : float, shift : QPoint):
         level = int(log2(1.0 / factor))
 

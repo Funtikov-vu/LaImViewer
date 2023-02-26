@@ -44,6 +44,10 @@ class LaImViewer(QGraphicsView):
 
         self.maxXTrans = 0.0
         self.maxYTrans = 0.0
+        
+        self.prevLevel = -1
+        self.prevRect = QRect(0,0,0,0)
+        self.prevImage = QImage()
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -67,6 +71,9 @@ class LaImViewer(QGraphicsView):
 
     def scrollValueChange(self):
         self.draw()
+        
+    def isOneRects(self, r1, r2)->bool:
+        return r1.x() == r2.x() and r1.y() == r2.y() and r1.width() == r2.width() and r1.height() == r2.height()
 
     def draw(self):
         if not self.wasLoaded or len(self.scene.items()) == 0 :
@@ -75,8 +82,24 @@ class LaImViewer(QGraphicsView):
         factor =  max(self.zoom*self.width()/self.reader.widthImage(), self.zoom*self.height()/self.reader.heightImage())
 
         newPose = QPoint(self.xTrans, self.yTrans)
+        newPose2 = QPoint(self.xTrans, self.yTrans)
 
         mapRect = self.mapToScene(self.viewport().geometry()).boundingRect()
+        mapRect2 = self.mapToScene(self.viewport().geometry()).boundingRect()
+        
+        currRect = self.reader.getShownRect(mapRect2, newPose2)
+        currLevel = self.reader.getLevel(factor)
+        
+        if currLevel == self.prevLevel and self.isOneRects(self.prevRect, currRect):
+            print("Tozhe samoe")
+            self.items()[0].setSceneRect(QRect(0,0,currRect.width(),currRect.height()))
+            self.items()[0].setPos(QPoint(currRect.x(), currRect.y()) + newPose)
+            return
+        else:
+            print("RISYI")
+        
+        self.prevLevel = currLevel
+        self.prevRect = currRect
         
         img, rect = self.reader.getTiles(mapRect, factor, newPose)
         
