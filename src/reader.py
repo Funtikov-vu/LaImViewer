@@ -41,14 +41,15 @@ class ImageReader():
         return level
     
     def getShownRect(self, screenRect, shift):
-        screenRect.translate(QPoint(-shift.x(),-shift.y()))
+        screenRectCopy = QRect(screenRect.x(), screenRect.y(), screenRect.width(), screenRect.height())
+        screenRectCopy.translate(QPoint(-shift.x(),-shift.y()))
         tileW = self.tile_size
         tileH = self.tile_size
-        wtop = int((screenRect.x()//tileW)*tileW)
-        htop = int((screenRect.y()//tileH)*tileH)
+        wtop = int((screenRectCopy.x()//tileW)*tileW)
+        htop = int((screenRectCopy.y()//tileH)*tileH)
         
-        wbot = int(((screenRect.x() + screenRect.width())//tileW + 1)*tileW)
-        hbot = int(((screenRect.y() + screenRect.height())//tileH + 1)*tileH)
+        wbot = int(((screenRectCopy.x() + screenRectCopy.width())//tileW + 1)*tileW)
+        hbot = int(((screenRectCopy.y() + screenRectCopy.height())//tileH + 1)*tileH)
         
         if wtop < 0:
             wtop = 0
@@ -78,50 +79,17 @@ class ImageReader():
         
     
     def getTiles(self, rect : QRect, factor : float, shift : QPoint):
-        level = int(log2(1.0 / factor))
-
-        if (level < 0):
-            level = 0
-            
-        rect.translate(QPoint(-shift.x(),-shift.y()))
-
-        if (level > self.levels - 1):
-            level = self.levels - 1
+        level = self.getLevel(factor)
             
         tileW = self.tile_size
         tileH = self.tile_size
-        w = self.width
-        h = self.height
         
-        wtop = int((rect.x()//tileW)*tileW)
-        htop = int((rect.y()//tileH)*tileH)
+        imgRect = self.getShownRect(rect, shift)
         
-        wbot = int(((rect.x() + rect.width())//tileW + 1)*tileW)
-        hbot = int(((rect.y() + rect.height())//tileH + 1)*tileH)
-        
-        if wtop < 0:
-            wtop = 0
-            
-        if htop < 0:
-            htop = 0
-        
-        if wtop > self.width:
-            wtop = self.width
-        
-        if htop > self.height:
-            htop = self.height
-        
-        if wbot > self.width:
-            wbot = self.width
-        
-        if hbot > self.height:
-            hbot = self.height
-            
-        if wbot < 0:
-            wbot = 0
-            
-        if hbot < 0:
-            hbot = 0
+        wtop = imgRect.x()
+        htop = imgRect.y()
+        wbot = wtop + imgRect.width()
+        hbot = htop + imgRect.height()
             
         fullImage = None
         painter = None
@@ -163,9 +131,6 @@ class ImageReader():
             x += tileW
             prevW += img.width()
             prevH = 0
-        
-        #if painter is not None:
-            #painter.end()
             
         return fullImage, QRect(wtop, htop, wbot-wtop, hbot-htop)             
                 

@@ -82,21 +82,17 @@ class LaImViewer(QGraphicsView):
         factor =  max(self.zoom*self.width()/self.reader.widthImage(), self.zoom*self.height()/self.reader.heightImage())
 
         newPose = QPoint(self.xTrans, self.yTrans)
-        newPose2 = QPoint(self.xTrans, self.yTrans)
 
         mapRect = self.mapToScene(self.viewport().geometry()).boundingRect()
-        mapRect2 = self.mapToScene(self.viewport().geometry()).boundingRect()
         
-        currRect = self.reader.getShownRect(mapRect2, newPose2)
+        currRect = self.reader.getShownRect(mapRect, newPose)
         currLevel = self.reader.getLevel(factor)
         
+        self.items()[0].setSceneRect(QRect(0,0,currRect.width(),currRect.height()))
+        self.items()[0].setPos(QPoint(currRect.x(), currRect.y()) + newPose)
+        
         if currLevel == self.prevLevel and self.isOneRects(self.prevRect, currRect):
-            # print("Tozhe samoe")
-            self.items()[0].setSceneRect(QRect(0,0,currRect.width(),currRect.height()))
-            self.items()[0].setPos(QPoint(currRect.x(), currRect.y()) + newPose2)
             return
-        # else:
-        #     print("RISYI")
         
         self.prevLevel = currLevel
         self.prevRect = currRect
@@ -106,8 +102,8 @@ class LaImViewer(QGraphicsView):
         if img is not None:
             pixmap = QPixmap.fromImage(img)
             self.items()[0].setPixmap(pixmap)
-            self.items()[0].setSceneRect(QRect(0,0,rect.width(),rect.height()))
-            self.items()[0].setPos(QPoint(rect.x(), rect.y()) + newPose)
+            # self.items()[0].setSceneRect(QRect(0,0,rect.width(),rect.height()))
+            # self.items()[0].setPos(QPoint(rect.x(), rect.y()) + newPose)
             
     def wheelEvent(self, event):
         if self.skipZoom:
@@ -120,7 +116,6 @@ class LaImViewer(QGraphicsView):
         
         angle = event.angleDelta().y()
         
-        #for i in range(1):
         factor = pow(1.0015, angle)
 
         if(self.zoom*factor < 1):
