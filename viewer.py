@@ -194,6 +194,9 @@ class LaImViewer(QGraphicsView):
     def mouseReleaseEvent(self, event):
         self.startPos = None
         self.draw()
+    
+    def closeEvent(self, event):
+        print("close viewer")
 
 if __name__ == '__main__':
     import sys
